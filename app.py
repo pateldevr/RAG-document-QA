@@ -10,6 +10,7 @@ from indexing.embedder import embedding
 from vector_store.chroma_client import initialize, store
 from query.retriever import retrieving
 from query.generator import response_drafting
+from query.rewriter import rewrite_query
 
 load_dotenv()
 
@@ -34,8 +35,8 @@ def run_indexing(tmp_path: str):
     store(collection, chunks, vectors)
 
 
-def get_response(query: str) -> str:
-    chunks = retrieving(query, COLLECTION_NAME)
+def get_response(query, updated_query):
+    chunks = retrieving(updated_query, COLLECTION_NAME)
     return response_drafting(query, chunks)
 
 
@@ -95,12 +96,15 @@ def show_chat_section():
             st.markdown(msg["content"])
 
     if query := st.chat_input("Ask a question about your document..."):
+        updated_query = query
+        if st.session_state.get("messages") and len(st.session_state.messages) > 0:
+            updated_query = rewrite_query(query, st.session_state.messages)
         st.session_state.messages.append({"role": "user", "content": query})
         with st.chat_message("user"):
             st.markdown(query)
         with st.chat_message("assistant"):
             with st.spinner("Thinking..."):
-                response = get_response(query)
+                response = get_response(query, updated_query)
             st.markdown(response)
         st.session_state.messages.append({"role": "assistant", "content": response})
 

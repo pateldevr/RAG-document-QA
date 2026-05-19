@@ -1,13 +1,6 @@
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from google import genai
-from dotenv import load_dotenv
-
-# Load environment variables
-load_dotenv()
-
-# Configure API key
-client = genai.Client(api_key=os.getenv('GEMINI_API_KEY'))
+from llm_client import client
 
 def response_drafting(question, chunks):
     """
@@ -28,7 +21,7 @@ def response_drafting(question, chunks):
     """
     
     response = client.models.generate_content(
-        model = "gemini-2.5-flash-lite",
+        model = "gemini-3.1-flash-lite",
         contents = prompt + f"Question: {question} \n Context: {context}"
     )
     
